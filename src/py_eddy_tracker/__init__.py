@@ -25,6 +25,7 @@ from datetime import datetime
 import logging
 
 import zarr
+from zarr import codecs as zarr_codecs
 
 from ._version import get_versions
 
@@ -454,7 +455,7 @@ VAR_DESCR = dict(
         nc_name="effective_contour_longitude",
         old_nc_name=["contour_lon_e"],
         nc_type="f4",
-        filters=[zarr.Delta("i2")],
+        filters=[zarr_codecs.Delta(dtype="i2")],
         output_type="i2",
         scale_factor=0.01,
         add_offset=180.0,
@@ -471,7 +472,7 @@ VAR_DESCR = dict(
         nc_name="effective_contour_latitude",
         old_nc_name=["contour_lat_e"],
         nc_type="f4",
-        filters=[zarr.Delta("i2")],
+        filters=[zarr_codecs.Delta(dtype="i2")],
         output_type="i2",
         scale_factor=0.01,
         nc_dims=("obs", "NbSample"),
@@ -498,7 +499,7 @@ VAR_DESCR = dict(
         nc_name="speed_contour_longitude",
         old_nc_name=["contour_lon_s"],
         nc_type="f4",
-        filters=[zarr.Delta("i2")],
+        filters=[zarr_codecs.Delta(dtype="i2")],
         output_type="i2",
         scale_factor=0.01,
         add_offset=180.0,
@@ -515,7 +516,7 @@ VAR_DESCR = dict(
         nc_name="speed_contour_latitude",
         old_nc_name=["contour_lat_s"],
         nc_type="f4",
-        filters=[zarr.Delta("i2")],
+        filters=[zarr_codecs.Delta(dtype="i2")],
         output_type="i2",
         scale_factor=0.01,
         nc_dims=("obs", "NbSample"),

@@ -47,6 +47,7 @@ import packaging.version
 from pint import UnitRegistry
 from pint.errors import UndefinedUnitError
 import zarr
+from zarr import codecs as zarr_codecs
 
 from .. import VAR_DESCR, VAR_DESCR_inv, __version__
 from ..generic import (
@@ -732,7 +733,7 @@ class EddiesObservations(object):
 
     @staticmethod
     def zarr_dimension(filename):
-        if isinstance(filename, zarr.storage.MutableMapping):
+        if isinstance(filename, zarr.Group):
             h = filename
         else:
             h = zarr.open(filename)
@@ -769,7 +770,7 @@ class EddiesObservations(object):
         filename_ = (
             filename.filename if isinstance(filename, ExFileObject) else filename
         )
-        if isinstance(filename, zarr.storage.MutableMapping):
+        if isinstance(filename, zarr.Group):
             return cls.load_from_zarr(filename, **kwargs)
         if isinstance(filename, (bytes, str)):
             end = b".zarr" if isinstance(filename_, bytes) else ".zarr"
@@ -806,7 +807,7 @@ class EddiesObservations(object):
         :return type: class
         """
         # FIXME
-        if isinstance(filename, zarr.storage.MutableMapping):
+        if isinstance(filename, zarr.Group):
             h_zarr = filename
         else:
             if not isinstance(filename, str):
@@ -816,7 +817,7 @@ class EddiesObservations(object):
         _check_versions(h_zarr.attrs.get("framework_version", None))
         var_list = cls.build_var_list(list(h_zarr.keys()), remove_vars, include_vars)
 
-        nb_obs = getattr(h_zarr, var_list[0]).shape[0]
+        nb_obs = h_zarr[var_list[0]].shape[0]
         track_array_variables = h_zarr.attrs["track_array_variables"]
 
         if indexs is not None and "obs" in indexs:
@@ -1682,7 +1683,7 @@ class EddiesObservations(object):
             if add_offset is None:
                 add_offset = 0
             filters.append(
-                zarr.FixedScaleOffset(
+                zarr_codecs.FixedScaleOffset(
                     offset=add_offset,
                     scale=1 / scale_factor,
                     dtype=content["nc_type"],
@@ -1706,7 +1707,7 @@ class EddiesObservations(object):
     ):
         kwargs_variable["shape"] = data.shape
         kwargs_variable["compressor"] = (
-            zarr.Blosc(cname="zstd", clevel=2) if compressor is None else compressor
+            zarr_codecs.BloscCodec(cname="zstd", clevel=2) if compressor is None else compressor
         )
         kwargs_variable["filters"] = list()
         store_dtype = kwargs_variable.pop("store_dtype", None)
@@ -1714,7 +1715,7 @@ class EddiesObservations(object):
             if add_offset is None:
                 add_offset = 0
             kwargs_variable["filters"].append(
-                zarr.FixedScaleOffset(
+                zarr_codecs.FixedScaleOffset(
                     offset=add_offset,
                     scale=1 / scale_factor,
                     dtype=kwargs_variable["dtype"],
@@ -1732,7 +1733,10 @@ class EddiesObservations(object):
             kwargs_variable["chunks"] = (chunck_size // second_dim, second_dim)
 
         kwargs_variable.pop("dimensions")
-        v = handler_zarr.create_dataset(**kwargs_variable)
+        # Zarr 3: rename compressor -> compressors
+        if "compressor" in kwargs_variable:
+            kwargs_variable["compressors"] = [kwargs_variable.pop("compressor")]
+        v = handler_zarr.create_array(**kwargs_variable)
         attrs = list(attr_variable.keys())
         attrs.sort()
         for attr in attrs:

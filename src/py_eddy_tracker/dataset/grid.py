@@ -20,10 +20,8 @@ from numpy import (
     empty,
     errstate,
     exp,
-    float_,
     floor,
     histogram2d,
-    int_,
     interp,
     isnan,
     linspace,
@@ -1049,7 +1047,7 @@ class GridDataset(object):
         local_data[data.mask] = 0
 
         v = gaussian_filter(local_data, sigma=sigma, mode=mode)
-        w = gaussian_filter(float_(~data.mask), sigma=sigma, mode=mode)
+        w = gaussian_filter((~data.mask).astype(np.float64), sigma=sigma, mode=mode)
 
         with errstate(invalid="ignore"):
             return ma.array(v / w, mask=w == 0)
@@ -1108,7 +1106,7 @@ class UnRegularGridDataset(GridDataset):
     def bbox_indice(self, vertices):
         dist, idx = self.index_interp.query(vertices, k=1)
         i_y = idx % self.x_c.shape[1]
-        i_x = int_((idx - i_y) / self.x_c.shape[1])
+        i_x = np.intp((idx - i_y) / self.x_c.shape[1])
         return (
             (max(i_x.min() - self.N, 0), i_x.max() + self.N + 1),
             (max(i_y.min() - self.N, 0), i_y.max() + self.N + 1),
@@ -1127,7 +1125,7 @@ class UnRegularGridDataset(GridDataset):
     def nearest_grd_indice(self, x, y):
         dist, idx = self.index_interp.query((x, y), k=1)
         i_y = idx % self.x_c.shape[1]
-        i_x = int_((idx - i_y) / self.x_c.shape[1])
+        i_x = np.intp((idx - i_y) / self.x_c.shape[1])
         return i_x, i_y
 
     def compute_pixel_path(self, x0, y0, x1, y1):
@@ -1189,7 +1187,7 @@ class UnRegularGridDataset(GridDataset):
             uniform_resample_stack(contour.vertices)[1:], k=4
         )
         i_y = idx % self.x_c.shape[1]
-        i_x = int_((idx - i_y) / self.x_c.shape[1])
+        i_x = np.intp((idx - i_y) / self.x_c.shape[1])
         # A simplified solution to be change by a weight mean
         return self._speed_norm[i_x, i_y].mean(axis=1).mean()
 

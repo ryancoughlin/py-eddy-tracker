@@ -9,7 +9,7 @@ from tarfile import ExFileObject
 from tokenize import TokenError
 
 from Polygon import Polygon
-from matplotlib.cm import get_cmap
+from matplotlib.pyplot import get_cmap
 from matplotlib.collections import LineCollection, PolyCollection
 from matplotlib.colors import Normalize
 from netCDF4 import Dataset

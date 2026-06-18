@@ -5,7 +5,7 @@ Class to compute Amplitude and average speed profile
 
 import logging
 
-from matplotlib.cm import get_cmap
+from matplotlib.pyplot import get_cmap
 from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
 from numba import njit, types as numba_types
